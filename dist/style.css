@@ -8,3 +8,15 @@
 /* First course: a real 3D windshield, with a single shared WebGL context. */
 .hero-scene>img{width:100%;height:100%;object-fit:cover;display:block}.course-thumb img{width:100%;height:100%;object-fit:cover;display:block}.badge-3d{background:#066be9;color:#fff;padding:2px 6px;border-radius:4px;font-size:9px;margin-left:6px;font-weight:700}.view-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:-5px 0 10px;font-size:10px;color:#627389}.view-toolbar>div{display:flex;gap:5px}.view-toolbar button{background:#eef3f7;padding:5px 9px;border-radius:6px;font-size:10px;color:#627389}.view-toolbar button[aria-pressed=true]{background:#e7f1ff;color:#066be9}.drive-stage #road3d{position:absolute;inset:0;z-index:0}.view-controls{position:absolute;bottom:87px;left:50%;transform:translateX(-50%);display:flex;gap:5px;background:#122d4733;padding:4px;border-radius:9px}.view-controls button{background:#fffffff0;border-radius:6px;padding:6px 12px;font-size:10px;color:#284756;min-height:32px;touch-action:none}.view-controls button.active{background:#e4f1ff;color:#066be9}.render-note{font-size:10px;color:#956b00}.replay-scene>img{width:100%;height:100%;object-fit:cover;display:block}
 @media(max-width:700px){.view-toolbar{font-size:9px;margin:0 0 9px}.view-toolbar button{font-size:9px;padding:5px 7px}.view-controls{bottom:78px}.view-controls button{font-size:9px;padding:5px 11px}.drive-stage:has(#road3d:not([hidden])){height:clamp(330px,52dvh,470px)}.version{font-size:9px;letter-spacing:0}.view-toolbar>span{max-width:180px}}
+
+/* 3D cockpit supplies the lower frame; keep HUD out of the windshield centre. */
+.drive-stage:has(#road3d:not([hidden])) .dashboard{top:58px;bottom:auto;left:14px;right:auto;max-width:calc(100% - 28px);padding:8px 13px;gap:12px;background:#18323de8;border:1px solid #d6e9e522;border-radius:10px;box-shadow:0 3px 14px #162a3518}
+.drive-stage:has(#road3d:not([hidden])) .speed{min-width:66px}
+.drive-stage:has(#road3d:not([hidden])) .speed b{font-size:28px}
+.drive-stage:has(#road3d:not([hidden])) .speed span{font-size:9px}
+.drive-stage:has(#road3d:not([hidden])) .drive-status{max-width:190px}
+.drive-stage:has(#road3d:not([hidden])) .drive-status>span{font-size:10px}
+.drive-stage:has(#road3d:not([hidden])) .gear{display:none}
+.view-controls{bottom:15px;z-index:2;background:#1934427a;backdrop-filter:blur(8px);padding:3px;border:1px solid #dfefeb25}
+.view-controls button{min-height:40px;padding:6px 14px}
+@media(max-width:700px){.drive-stage:has(#road3d:not([hidden])) .dashboard{top:49px;left:12px;padding:6px 11px;gap:9px}.drive-stage:has(#road3d:not([hidden])) .speed b{font-size:25px}.drive-stage:has(#road3d:not([hidden])) .drive-status>span{font-size:9px}.view-controls{bottom:12px}.view-controls button{min-height:36px;padding:5px 12px}}

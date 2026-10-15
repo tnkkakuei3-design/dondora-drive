@@ -1,9 +1,9 @@
 import * as THREE from './vendor/three.module.min.js';
-import {createWorld,updateWorld} from './world3d.mjs?v=030';
+import {createWorld,updateWorld} from './world3d.mjs?v=040';
 export class Renderer3D {
  constructor(canvas,{onContextLost=()=>{}}={}){
   this.canvas=canvas;this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance'});
-  this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.05;
+  this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=.95;
   this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   this.ratio=Math.min(globalThis.devicePixelRatio||1,1.5);this.renderer.setPixelRatio(this.ratio);
   this.world=createWorld();this.worlds=new Map([[0,this.world]]);this.raycaster=new THREE.Raycaster();this.pointer=new THREE.Vector2();this.yaw=0;this.currentYaw=0;this.lastWidth=0;this.lastHeight=0;this.failed=false;

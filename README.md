@@ -48,3 +48,15 @@ Browser automation is unavailable in the current managed environment. Physics te
 - Home thumbnails and result scenes now use the corresponding 3D world. One WebGL renderer serves all three cached scenes.
 - The 3D left/right camera buttons record intersection observations only after a qualified stop; checks and camera reset on retry.
 - Published through GitHub Pages. Browser GPU rendering/performance is not verified in this execution environment.
+
+## 0.4 — Visual rebuild
+
+- Rounded vehicle body with distinct paint, seals, glazing, alloy wheels, lamps, wipers and door details.
+- Articulated people with faces, collars, backpacks, elbow/knee movement and a pedalling cyclist.
+- Varied flat/gabled roofs, facade siding, porch fittings, layered tree canopies, paving joints and manholes.
+- Gradient sky, cloud banks, procedural daylight reflections, asphalt grain, contact shadows, crosswalk pictograms and vertical road lettering.
+- Lower cockpit, detailed steering wheel and speed-linked instrument texture. Compact HUD leaves the physical cockpit visible.
+- Static geometry and cloud batches limit the untextured scenes to 147/148/196 meshes and approximately 103k/103k/108k triangles. Lightweight mode remains available.
+- Gameplay, scoring, storage keys and hazard locations unchanged. Versioned module and stylesheet URLs avoid mixing with v0.3.
+
+Validation: existing 12 engine checks and 3-course geometry/occlusion checks pass. Local DOM flow tests pass with a stub renderer; canvas texture generation and instrument updates verified separately. SVG projections inspect geometry placement only. Actual WebGL material/shadow output, touch ergonomics and iPhone frame rate are not verified in this environment; no claim of a measured 100/100 visual score is made.
