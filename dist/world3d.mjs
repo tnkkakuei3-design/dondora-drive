@@ -1,3 +1,5 @@
+import {makePedestrian,posePedestrian} from './pedestrian.mjs?v=070';
+import {pedestrianMotion} from './pedestrian-motion.mjs?v=070';
 import * as THREE from './vendor/three.module.min.js';
 import {mergeGeometries} from './vendor/BufferGeometryUtils.js';
 const mats=new Map();
@@ -132,7 +134,7 @@ function figure({child=false,cycling=false}={}){
  g.rotation.y=-Math.PI/2;g.userData={legs,arms};return g;
 }
 export function makeChild(){return figure({child:true});}
-export function makeAdult({cycling=false}={}){return figure({cycling});}
+export function makeAdult({cycling=false}={}){return cycling?figure({cycling}):makePedestrian();}
 export function makeBicycle(){
  const g=new THREE.Group();g.name='bicycle';const wheels=[];
  for(const x of [-.72,.72]){
@@ -285,6 +287,12 @@ export function updateWorld(world,drive,{yaw=0,still=false,reducedMotion=false}=
  if(world.index===2){child.userData.wheels.forEach(w=>w.rotation.z=drive.eventTime===null?0:-drive.eventTime*5);child.userData.crank.rotation.z=drive.eventTime===null?0:-drive.eventTime*5;
  child.userData.rider.userData.legs.forEach((l,i)=>{l.rotation.x=-.25+(i?1:-1)*walk*.7;l.userData.knee.rotation.x=.65+(i?1:-1)*walk*.45;});child.userData.rider.userData.arms.forEach(a=>a.userData.elbow.rotation.x=-.25);}else{child.userData.legs.forEach((l,i)=>{l.rotation.x=i?walk:-walk;l.userData.knee.rotation.x=-Math.max(0,(i?-walk:walk))*.9;});child.userData.arms.forEach((a,i)=>{a.rotation.x=i?-walk*.7:walk*.7;a.userData.elbow.rotation.x=-.15-Math.abs(walk)*.3;});}
  if(drive.impact){const t=Math.min(2.5,drive.time-drive.impact.at);child.visible=true;child.position.set(drive.impact.x+t*2.2,Math.max(0,6*t-2.8*t*t),-drive.scene.hazard-t*5);child.rotation.z=t*3.2;child.rotation.x=t*2.1;if(world.actorShadow)world.actorShadow.visible=false;}else{child.rotation.x=0;child.rotation.z=0;}
+ if(world.index===1){const motion=pedestrianMotion(drive.eventTime);const flight=drive.impact?drive.time-drive.impact.at:null;
+  child.position.set(motion.x,Math.abs(motion.x)>3.6?.13:0,-drive.scene.hazard+motion.towardCar);
+  posePedestrian(child,{elapsed:drive.eventTime,time:drive.time,flight,impactSpeed:drive.impact?.speed});
+  if(flight!==null){const t=Math.min(flight,2.5),power=Math.min(drive.impact.speed/35,1.4);child.position.set(drive.impact.x+t*(1+power),Math.max(0,5*t-3.4*t*t),-(drive.impact.z??drive.scene.hazard)-t*(2+power*2));}
+  if(world.actorShadow){world.actorShadow.position.set(child.position.x,.027,child.position.z);world.actorShadow.visible=child.visible&&flight===null;}
+ }
  cockpit.userData.wheel.rotation.z=drive.arcade?-(drive.steering||0)*.55:movement?Math.sin(drive.z*.09)*.012:0;
  sun.position.set(-35,48,16-drive.z);sun.target.position.set(0,0,-drive.z-23);sun.target.updateMatrixWorld();
  marker.visible=!!drive.detected;if(world.index===0)marker.position.set(-3.7,1.25,-83.1);else if(world.index===1)marker.position.set(x,1,-drive.scene.hazard+.3);else marker.position.set(3.6,2,-88);marker.scale.setScalar(world.index===1?.55:1);marker.quaternion.copy(camera.quaternion);world.scene.updateMatrixWorld(true);
@@ -308,6 +316,10 @@ export function updateIntegratedWorld(w,d,options={}){
   if(flight!==null){const t=Math.min(flight,2.5);actor.position.set(a.hit.x+t*2.2,Math.max(0,6*t-2.8*t*t),-a.z-t*5);actor.rotation.z=t*3.2;actor.rotation.x=t*2.1;}
   else if(i<2){const gait=a.started===null?0:Math.sin(a.elapsed*8)*.42;actor.userData.legs.forEach((l,k)=>{l.rotation.x=k?gait:-gait;l.userData.knee.rotation.x=-Math.max(0,k?-gait:gait)*.9;});actor.userData.arms.forEach((arm,k)=>arm.rotation.x=k?-gait*.7:gait*.7);}
   else {actor.userData.wheels.forEach(wh=>wh.rotation.z=-a.elapsed*5);actor.userData.crank.rotation.z=-a.elapsed*5;actor.userData.rider.userData.legs.forEach((l,k)=>{l.rotation.x=-.25+Math.sin(a.elapsed*5+k*Math.PI)*.3;l.userData.knee.rotation.x=.65;});}
+  if(i===1){posePedestrian(actor,{elapsed:a.started===null?null:a.elapsed,time:d.time,flight,impactSpeed:a.hit?.speed});actor.position.z=-(a.currentZ??a.z);
+   if(flight!==null){const t=Math.min(flight,2.5),power=Math.min(a.hit.speed/35,1.4);actor.position.set(a.hit.x+t*(1+power),Math.max(0,5*t-3.4*t*t),-(a.hit.z??a.z)-t*(2+power*2));}
+   else actor.position.y=Math.abs(a.x)>3.6?.13:0;
+  }
   const shadow=w.shadows[i];if(shadow){shadow.position.set(actor.position.x,.027,actor.position.z);shadow.visible=actor.visible&&Math.abs(actor.position.x)<3.5;shadow.material.opacity=1/(1+actor.position.y);}
   const sparks=w.sparks[i];sparks.visible=flight!==null&&flight<.6;sparks.position.set(a.hit?.x||0,1.2,-a.z);sparks.children.forEach(p=>{const t=flight||0,angle=p.userData.angle;p.position.set(Math.cos(angle)*t*3,Math.sin(angle)*t*3,t);p.scale.setScalar(Math.max(.1,1-t));});
  });w.scene.updateMatrixWorld(true);

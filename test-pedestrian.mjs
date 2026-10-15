@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import * as T from './dist/vendor/three.module.min.js';
+import {makePedestrian,posePedestrian} from './dist/pedestrian.mjs';
+import {pedestrianMotion} from './dist/pedestrian-motion.mjs';
+import {Drive} from './dist/engine.mjs';
+import {ArcadeDrive} from './dist/arcade.mjs';
+import {createWorld,updateWorld,createIntegratedWorld,updateIntegratedWorld} from './dist/world3d.mjs';
+const p=makePedestrian(),q=makePedestrian();let skins=0,bones=0;
+p.traverse(o=>{if(o.isSkinnedMesh)skins++;if(o.isBone)bones++;});assert.ok(skins>0&&bones>20);
+posePedestrian(p,{elapsed:.6,time:2});const first=p.userData.rig.head.quaternion.clone();
+for(let i=0;i<100;i++)posePedestrian(p,{elapsed:.6,time:2});assert.ok(first.angleTo(p.userData.rig.head.quaternion)<1e-6,'Paused head does not accumulate rotation');
+posePedestrian(p,{elapsed:1.8,time:3});assert.equal(p.userData.rig.actions.Run.getEffectiveWeight(),1);assert.equal(q.userData.rig.actions.Run.getEffectiveWeight(),0,'Independent skeletons');
+posePedestrian(p,{elapsed:1.8,time:3,flight:.4});assert.equal(p.userData.rig.actions.Death.getEffectiveWeight(),1);
+const w=createWorld({index:1,textures:false}),d=new Drive(1);d.start();d.eventTime=1.8;d.step(.01);updateWorld(w,d);
+const m=pedestrianMotion(d.eventTime);assert.ok(Math.abs(w.child.position.x-m.x)<1e-9);assert.ok(Math.abs(w.child.position.z-(-d.scene.hazard+m.towardCar))<1e-9);
+const a=new ArcadeDrive(),aw=createIntegratedWorld();a.start();a.z=130;a.input.gas=true;for(let i=0;i<240;i++)a.step(1/120);updateIntegratedWorld(aw,a);assert.equal(aw.actors[1].position.x,a.actors[1].x);if(!a.actors[1].hit)assert.equal(aw.actors[1].position.z,-a.actors[1].currentZ);
+console.log(`Pedestrian: ${skins} skinned meshes, ${bones} bones; animation independence, pause stability, acceleration and physics/render path agreement passed.`);
