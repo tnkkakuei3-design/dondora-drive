@@ -21,3 +21,16 @@ for(const z of [220,255,280,330]){
  assert.ok(road&&Math.abs(road.point.y)<.04,`Continuous road surface through and beyond finish at ${z}m`);
 }
 console.log('Integrated route clearance and road continuity beyond finish passed.');
+for(const fps of [5,30,120]){
+ const s=new ArcadeDrive();s.start();s.input.gas=true;s.steer(1);
+ for(let i=0;i<2*fps;i++)s.step(1/fps);
+ assert.equal(s.x,1.38);updateIntegratedWorld(w,s);assert.equal(w.camera.position.x,s.x);
+ s.steer(-1);for(let i=0;i<2*fps;i++)s.step(1/fps);assert.equal(s.x,-1.38);
+ s.v=0;s.input.gas=false;s.input.brake=true;s.steer(1);s.step(.2);assert.equal(s.x,-1.38,'No sideways sliding while stopped');
+ s.pause();s.steer(-1);assert.equal(s.lane,1,'Paused steering ignored');
+}
+for(const x of [-1.38,1.38]){
+ const s=new ArcadeDrive();s.start();s.x=x;s.lane=x>0?1:0;s.z=85.8;s.v=6;s.actors[0].started=0;s.time=2.2;
+ s.step(.05);assert.equal(s.hits,x<0?1:0,'Collision uses occupied lane');
+}
+console.log('Steering: both lanes, camera, stopped/paused behavior and lane-aware collision passed.');

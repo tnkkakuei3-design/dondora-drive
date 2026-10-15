@@ -277,7 +277,7 @@ export function createWorld({merged=true,textures=true,index=0,integrated=false}
 }
 export function updateWorld(world,drive,{yaw=0,still=false,reducedMotion=false}={}){
  const {camera,child,cockpit,sun,marker}=world;const movement=drive.phase==='running'&&!still&&!reducedMotion;const bob=movement?Math.sin(drive.z*2.8)*.004*Math.min(drive.speed/25,1):0;const pitch=movement?(drive.input.brake?-.012:drive.input.gas?.006:0):0;
- camera.position.set(-1.38,1.58+bob,-drive.z);camera.rotation.set(-.015+pitch,yaw,0,'YXZ');world.sky.position.copy(camera.position);updateInstrument(cockpit,drive);
+ camera.position.set(drive.x??-1.38,1.58+bob,-drive.z);camera.rotation.set(-.015+pitch,yaw-(drive.steering||0)*.035,reducedMotion?0:-(drive.steering||0)*.018,'YXZ');world.sky.position.copy(camera.position);updateInstrument(cockpit,drive);
  // World coordinates follow the engine; the child begins directly behind the van.
  const x=world.index===0?-3.7+Math.max(0,drive.actorX+5.05)*.86:world.index===1?-4.3+Math.max(0,drive.actorX+5.05)*.91:drive.actorX;
  child.position.set(x,world.index===1&&Math.abs(x)>3.6?.13:0,-drive.scene.hazard);child.visible=!drive.actorClear;if(world.actorShadow){world.actorShadow.position.set(x,.027,-drive.scene.hazard);world.actorShadow.visible=child.visible&&Math.abs(x)<3.5;}
@@ -285,7 +285,7 @@ export function updateWorld(world,drive,{yaw=0,still=false,reducedMotion=false}=
  if(world.index===2){child.userData.wheels.forEach(w=>w.rotation.z=drive.eventTime===null?0:-drive.eventTime*5);child.userData.crank.rotation.z=drive.eventTime===null?0:-drive.eventTime*5;
  child.userData.rider.userData.legs.forEach((l,i)=>{l.rotation.x=-.25+(i?1:-1)*walk*.7;l.userData.knee.rotation.x=.65+(i?1:-1)*walk*.45;});child.userData.rider.userData.arms.forEach(a=>a.userData.elbow.rotation.x=-.25);}else{child.userData.legs.forEach((l,i)=>{l.rotation.x=i?walk:-walk;l.userData.knee.rotation.x=-Math.max(0,(i?-walk:walk))*.9;});child.userData.arms.forEach((a,i)=>{a.rotation.x=i?-walk*.7:walk*.7;a.userData.elbow.rotation.x=-.15-Math.abs(walk)*.3;});}
  if(drive.impact){const t=Math.min(2.5,drive.time-drive.impact.at);child.visible=true;child.position.set(drive.impact.x+t*2.2,Math.max(0,6*t-2.8*t*t),-drive.scene.hazard-t*5);child.rotation.z=t*3.2;child.rotation.x=t*2.1;if(world.actorShadow)world.actorShadow.visible=false;}else{child.rotation.x=0;child.rotation.z=0;}
- cockpit.userData.wheel.rotation.z=movement?Math.sin(drive.z*.09)*.012:0;
+ cockpit.userData.wheel.rotation.z=drive.arcade?-(drive.steering||0)*.55:movement?Math.sin(drive.z*.09)*.012:0;
  sun.position.set(-35,48,16-drive.z);sun.target.position.set(0,0,-drive.z-23);sun.target.updateMatrixWorld();
  marker.visible=!!drive.detected;if(world.index===0)marker.position.set(-3.7,1.25,-83.1);else if(world.index===1)marker.position.set(x,1,-drive.scene.hazard+.3);else marker.position.set(3.6,2,-88);marker.scale.setScalar(world.index===1?.55:1);marker.quaternion.copy(camera.quaternion);world.scene.updateMatrixWorld(true);
 }
