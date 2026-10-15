@@ -1,5 +1,5 @@
 import * as THREE from './vendor/three.module.min.js';
-import {createWorld,updateWorld} from './world3d.mjs?v=040';
+import {createWorld,updateWorld,createIntegratedWorld,updateIntegratedWorld} from './world3d.mjs?v=050';
 export class Renderer3D {
  constructor(canvas,{onContextLost=()=>{}}={}){
   this.canvas=canvas;this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance'});
@@ -11,9 +11,9 @@ export class Renderer3D {
  }
  resize(width,height){if(width===this.lastWidth&&height===this.lastHeight)return;this.lastWidth=width;this.lastHeight=height;this.renderer.setSize(width,height,false);this.world.camera.aspect=width/height;this.world.camera.updateProjectionMatrix();}
  render(drive,{still=false,reducedMotion=false,width,height,yaw}={}){
-  if(this.failed)throw new Error('WebGL context lost');if(this.world.index!==drive.index){if(!this.worlds.has(drive.index))this.worlds.set(drive.index,createWorld({index:drive.index}));this.world=this.worlds.get(drive.index);this.lastWidth=0;this.currentYaw=0;}const r=this.canvas.getBoundingClientRect();this.resize(width||Math.max(1,r.width),height||Math.max(1,r.height));
+  if(this.failed)throw new Error('WebGL context lost');if(this.world.index!==drive.index){if(!this.worlds.has(drive.index))this.worlds.set(drive.index,drive.index===3?createIntegratedWorld():createWorld({index:drive.index}));this.world=this.worlds.get(drive.index);this.lastWidth=0;this.currentYaw=0;}const r=this.canvas.getBoundingClientRect();this.resize(width||Math.max(1,r.width),height||Math.max(1,r.height));
   if(yaw!==undefined)this.yaw=yaw;this.currentYaw=still?0:this.currentYaw+(this.yaw-this.currentYaw)*.13;
-  updateWorld(this.world,drive,{yaw:this.currentYaw,still,reducedMotion});this.renderer.render(this.world.scene,this.world.camera);
+  (drive.arcade?updateIntegratedWorld:updateWorld)(this.world,drive,{yaw:this.currentYaw,still,reducedMotion});this.renderer.render(this.world.scene,this.world.camera);
  }
  snapshot(drive,width,height){this.render(drive,{still:true,width,height,yaw:0});return this.canvas.toDataURL('image/webp',.9);}
  hit(clientX,clientY){const b=this.canvas.getBoundingClientRect();this.pointer.set((clientX-b.left)/b.width*2-1,-(clientY-b.top)/b.height*2+1);this.raycaster.setFromCamera(this.pointer,this.world.camera);const hit=this.raycaster.intersectObjects(this.world.occluders.filter(o=>o.visible),true)[0];if(!hit)return false;let o=hit.object;while(o){if(this.world.targets.includes(o))return true;o=o.parent;}return false;}

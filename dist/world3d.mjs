@@ -224,7 +224,7 @@ function streetDetails(env,hazard,index){
   for(let j=0;j<5;j++){sphere(env,side*5.1,.48,-z-.8+j*.4,.27,['#688765','#829965'][j%2],[1,.9,1]);}
  }
 }
-export function createWorld({merged=true,textures=true,index=0}={}){
+export function createWorld({merged=true,textures=true,index=0,integrated=false}={}){
  const hazard=[88,94,100][index];const intersection=index===2;
  const scene=new THREE.Scene();scene.background=new THREE.Color('#c9e2ec');scene.fog=new THREE.Fog('#dae6e2',85,220);const sky=daylight(scene,textures);
  const camera=new THREE.PerspectiveCamera(57,1,.08,300);camera.rotation.order='YXZ';scene.add(camera);const cockpit=makeCockpit();camera.add(cockpit);
@@ -236,7 +236,7 @@ export function createWorld({merged=true,textures=true,index=0}={}){
  box(env,0,-.045,-100,7.1,.09,310,asphalt);
  if(intersection)box(env,0,-.035,-hazard,100,.08,8,asphalt);
  for(const side of [-1,1]){
-  const ranges=intersection?[[-255,-hazard-4],[-hazard+4,55]]:[[-255,55]];
+  const crossZ=integrated?220:hazard;const ranges=(intersection||integrated)?[[-285,-crossZ-4],[-crossZ+4,55]]:[[-285,55]];
   for(const [from,to] of ranges){const mid=(from+to)/2,len=to-from;box(env,side*4.25,.04,mid,1.4,.16,len,'#dddccc');box(env,side*3.58,.06,mid,.14,.19,len,'#eeeadc');box(env,side*3.35,.009,mid,.1,.014,len,'#efeddf');}
   for(let z=0;z<210;z+=7){if(Math.abs(z-hazard)<5&&index>0)continue;box(env,side*3.65,.145,-z,.15,.018,.44,'#8c9c96');for(let j=0;j<3;j++)box(env,side*3.65,.157,-z-.12+j*.12,.13,.01,.025,'#506c67');}
  }
@@ -253,7 +253,7 @@ export function createWorld({merged=true,textures=true,index=0}={}){
  if(intersection){box(env,-1.72,.02,-hazard+7,3.1,.025,.4,'#f2eddf');
   if(textures){const map=canvasTexture('stop-road',256,768,(c)=>{c.clearRect(0,0,256,768);c.fillStyle='#f5f0df';c.font='900 190px sans-serif';c.textAlign='center';c.textBaseline='middle';['止','ま','れ'].forEach((t,i)=>c.fillText(t,128,128+i*256));});if(map){const roadText=mesh(env,new THREE.PlaneGeometry(1.35,4),new THREE.MeshStandardMaterial({map,transparent:true,alphaTest:.2,roughness:1,depthWrite:false}),-1.7,.025,-hazard+15);roadText.rotation.x=-Math.PI/2;roadText.castShadow=false;}}
  }
- for(let i=0;i<17;i++){const z=6+i*12.7;for(const side of [-1,1]){if((index===0&&side<0&&Math.abs(z-88)<12)||(index>0&&Math.abs(z-hazard)<14))continue;house(env,side*(8.1+(i%2)*.3),-z,i+(side>0?2:0));if(i%3===0)tree(env,side*5.35,-z-6,.8+(i%2)*.12);}}
+ for(let i=0;i<17;i++){const z=6+i*12.7;for(const side of [-1,1]){if((integrated&&(Math.abs(z-154)<14||Math.abs(z-220)<14))||(index===0&&side<0&&Math.abs(z-88)<12)||(index>0&&Math.abs(z-hazard)<14))continue;house(env,side*(8.1+(i%2)*.3),-z,i+(side>0?2:0));if(i%3===0)tree(env,side*5.35,-z-6,.8+(i%2)*.12);}}
  // A quiet garden wall leaves a genuine occluded area behind the parked van.
  if(index===0){box(env,-5.35,.75,-87.6,.22,1.5,15,'#c9cab9');box(env,-5.35,1.55,-87.6,.3,.1,15,'#abb69f');for(let j=0;j<7;j++)sphere(env,-5.8,2,-81-j*2,.9,'#8eaa7c',[.8,.8,1.1]);}
  for(let z=8;z<205;z+=28){if(intersection&&Math.abs(z-hazard)<7)continue;cyl(env,-4.9,4.8,-z,.105,.16,9.6,'#9caaa4',8);box(env,-4.9,8.8,-z,1.7,.08,.08,'#7e908a');for(const dx of [-.65,0,.65]){cyl(env,-4.9+dx,8.94,-z,.075,.075,.2,'#dbdfd2',6);line(env,[[-4.9+dx,8.9,-z],[-4.9+dx,8.4,-z-14],[-4.9+dx,8.9,-z-28]],.018,'#697d78');}line(env,[[-4.9,6.9,-z],[-4.2,7,-z],[-3.8,6.9,-z]],.055,'#9caaa4');round(env,-3.8,6.84,-z,.45,.12,.2,.04,'#eee6cf');}
@@ -284,7 +284,31 @@ export function updateWorld(world,drive,{yaw=0,still=false,reducedMotion=false}=
  const walk=drive.eventTime!==null&&!still?Math.sin(Math.max(0,drive.eventTime-.85)*8)*.42:0;
  if(world.index===2){child.userData.wheels.forEach(w=>w.rotation.z=drive.eventTime===null?0:-drive.eventTime*5);child.userData.crank.rotation.z=drive.eventTime===null?0:-drive.eventTime*5;
  child.userData.rider.userData.legs.forEach((l,i)=>{l.rotation.x=-.25+(i?1:-1)*walk*.7;l.userData.knee.rotation.x=.65+(i?1:-1)*walk*.45;});child.userData.rider.userData.arms.forEach(a=>a.userData.elbow.rotation.x=-.25);}else{child.userData.legs.forEach((l,i)=>{l.rotation.x=i?walk:-walk;l.userData.knee.rotation.x=-Math.max(0,(i?-walk:walk))*.9;});child.userData.arms.forEach((a,i)=>{a.rotation.x=i?-walk*.7:walk*.7;a.userData.elbow.rotation.x=-.15-Math.abs(walk)*.3;});}
+ if(drive.impact){const t=Math.min(2.5,drive.time-drive.impact.at);child.visible=true;child.position.set(drive.impact.x+t*2.2,Math.max(0,6*t-2.8*t*t),-drive.scene.hazard-t*5);child.rotation.z=t*3.2;child.rotation.x=t*2.1;if(world.actorShadow)world.actorShadow.visible=false;}else{child.rotation.x=0;child.rotation.z=0;}
  cockpit.userData.wheel.rotation.z=movement?Math.sin(drive.z*.09)*.012:0;
  sun.position.set(-35,48,16-drive.z);sun.target.position.set(0,0,-drive.z-23);sun.target.updateMatrixWorld();
  marker.visible=!!drive.detected;if(world.index===0)marker.position.set(-3.7,1.25,-83.1);else if(world.index===1)marker.position.set(x,1,-drive.scene.hazard+.3);else marker.position.set(3.6,2,-88);marker.scale.setScalar(world.index===1?.55:1);marker.quaternion.copy(camera.quaternion);world.scene.updateMatrixWorld(true);
+}
+
+export function createIntegratedWorld(){
+ const w=createWorld({integrated:true});w.index=3;
+ const additions=new THREE.Group();
+ for(let x=-3;x<=3;x+=.8)box(additions,x,.02,-154,.45,.025,3.3,'#f2eddf');
+ box(additions,-1.72,.02,-148,3.1,.025,.35,'#f2eddf');
+ for(const side of [-1,1]){box(additions,side*4.2,.135,-154,1.25,.035,1.8,'#d9bf70');cyl(additions,side*4.8,1.7,-151.2,.045,.045,3.4,'#a9b5b0');box(additions,side*4.8,3,-151.2,.72,.65,.06,'#557fa2');label(additions,side*4.8,3,-151.15,.66,.5,'横断歩道','#557fa2','#fff8e8');}
+ box(additions,0,-.035,-220,100,.08,8,'#626f70');box(additions,-1.72,.02,-213,3.1,.025,.4,'#f2eddf');
+ const corner=new THREE.Group();corner.name='arcade-corner';box(corner,6,2.25,-211.8,4.8,4.5,7.6,'#d9d2c1');box(corner,6,4.55,-211.8,5,.15,7.8,'#8d9b94');for(let z=-214;z<=-209;z+=2)box(corner,3.57,2.8,z,.04,1.2,1.1,'#819fa7');
+ const sign=new THREE.Group();stopSign(sign,true);sign.position.z=-120;corner.add(sign);w.scene.add(corner);w.scene.add(compact(additions));
+ const adult=makeAdult(),bike=makeBicycle();w.scene.add(adult,bike);w.actors=[w.child,adult,bike];w.targets=[w.van,...w.actors,corner];w.occluders.push(adult,bike,corner);w.shadows=[w.actorShadow,contactShadow(w.scene,.9,1.1,true),contactShadow(w.scene,2,.9,true)];
+ const sparkMaterial=new THREE.MeshBasicMaterial({color:'#ffe3a0'});w.sparks=w.actors.map(()=>{const g=new THREE.Group();for(let j=0;j<7;j++){const star=mesh(g,new THREE.OctahedronGeometry(.09,0),sparkMaterial);star.userData.angle=j*Math.PI*2/7;}w.scene.add(g);g.visible=false;return g;});return w;
+}
+export function updateIntegratedWorld(w,d,options={}){
+ w.index=0;updateWorld(w,{...d,scene:{hazard:88},speed:d.speed,eventTime:null,actorX:-5.05,actorClear:false,detected:null},options);w.index=3;
+ d.actors.forEach((a,i)=>{const actor=w.actors[i],flight=a.hit?d.time-a.hit.at:null;actor.visible=!a.passed||flight!==null&&flight<2.5;actor.rotation.set(0,i===2?Math.PI:-Math.PI/2,0);actor.position.set(a.x,0,-a.z);
+  if(flight!==null){const t=Math.min(flight,2.5);actor.position.set(a.hit.x+t*2.2,Math.max(0,6*t-2.8*t*t),-a.z-t*5);actor.rotation.z=t*3.2;actor.rotation.x=t*2.1;}
+  else if(i<2){const gait=a.started===null?0:Math.sin(a.elapsed*8)*.42;actor.userData.legs.forEach((l,k)=>{l.rotation.x=k?gait:-gait;l.userData.knee.rotation.x=-Math.max(0,k?-gait:gait)*.9;});actor.userData.arms.forEach((arm,k)=>arm.rotation.x=k?-gait*.7:gait*.7);}
+  else {actor.userData.wheels.forEach(wh=>wh.rotation.z=-a.elapsed*5);actor.userData.crank.rotation.z=-a.elapsed*5;actor.userData.rider.userData.legs.forEach((l,k)=>{l.rotation.x=-.25+Math.sin(a.elapsed*5+k*Math.PI)*.3;l.userData.knee.rotation.x=.65;});}
+  const shadow=w.shadows[i];if(shadow){shadow.position.set(actor.position.x,.027,actor.position.z);shadow.visible=actor.visible&&Math.abs(actor.position.x)<3.5;shadow.material.opacity=1/(1+actor.position.y);}
+  const sparks=w.sparks[i];sparks.visible=flight!==null&&flight<.6;sparks.position.set(a.hit?.x||0,1.2,-a.z);sparks.children.forEach(p=>{const t=flight||0,angle=p.userData.angle;p.position.set(Math.cos(angle)*t*3,Math.sin(angle)*t*3,t);p.scale.setScalar(Math.max(.1,1-t));});
+ });w.scene.updateMatrixWorld(true);
 }

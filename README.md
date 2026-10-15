@@ -60,3 +60,11 @@ Browser automation is unavailable in the current managed environment. Physics te
 - Gameplay, scoring, storage keys and hazard locations unchanged. Versioned module and stylesheet URLs avoid mixing with v0.3.
 
 Validation: existing 12 engine checks and 3-course geometry/occlusion checks pass. Local DOM flow tests pass with a stub renderer; canvas texture generation and instrument updates verified separately. SVG projections inspect geometry placement only. Actual WebGL material/shadow output, touch ergonomics and iPhone frame rate are not verified in this environment; no claim of a measured 100/100 visual score is made.
+
+## 0.5 — Contact animation, driving audio and connected free drive
+
+- A single 255 m free-drive route places the original three encounters at 88, 154 and 220 m, with one camera and no scene-loading cuts.
+- Actual longitudinal/lateral contact triggers a non-graphic ballistic tumble. Free drive awards 100/200/300 contact-combo points; passing an encounter without contact resets the streak. Records use a separate arcade key, never a learning score.
+- Learning exercises retain safe stopping and capped failure scores; missed stopping lines can now lead to an actual contact animation before the failure result.
+- Synthesized engine harmonics respond to speed/throttle; filtered tire noise responds to braking. Start/resume unlock Web Audio through a user gesture. Mute, pause, exit and tab blur silence the motor.
+- Geometry, contact/combo logic at 30/60/120 Hz, safe/unsafe lessons, pause, stationary non-contact, retry, result storage and DOM control wiring checked. Web Audio scheduling verified with mocked audio nodes, not audible device playback. Real WebGL and iPhone audio/performance remain unverified.

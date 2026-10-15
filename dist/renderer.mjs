@@ -1,4 +1,4 @@
-import {clamp} from './engine.mjs';
+import {clamp} from './engine.mjs?v=050';
 const COLORS={sky:'#dcebf0',skyTop:'#b5d5e4',road:'#7f9098',edge:'#f8f4e7',pavement:'#dadbd2',grass:'#a7bda7',ink:'#18374b'};
 export class Renderer{
  constructor(canvas){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.w=1;this.h=1;this.hits=[];this.pan=0;}
@@ -98,7 +98,7 @@ export class Renderer{
    }
    if(sc.id==='parked')objects.push({z:hh-3.6,draw:()=>this.van(-3.95,hh-3.6)});
    const actorX=clamp(drive.actorX,-7,7);
-   if(sc.actor==='adult'||drive.eventTime!==null||hero||highlight){objects.push({z:hh,draw:()=>sc.actor==='bike'?this.bike(actorX,hh,drive.time):this.person(actorX,hh,sc.actor,drive.eventTime||0)});}
+   if(!drive.impact&&!drive.actorClear&&(sc.actor==='adult'||drive.eventTime!==null||hero||highlight)){objects.push({z:hh,draw:()=>sc.actor==='bike'?this.bike(actorX,hh,drive.time):this.person(actorX,hh,sc.actor,drive.eventTime||0)});}
    objects.sort((a,b)=>b.z-a.z);objects.forEach(o=>o.draw());
    if(sc.id==='parked'&&drive.distance<70&&drive.distance>10){const p=this.project(-4.95,hh-4.5,.22);c.fillStyle='#bb7b5b';c.beginPath();c.arc(p.x,p.y,p.s*.16,0,Math.PI*2);c.fill();}
    if(highlight||drive.detected){const hit=this.hits.find(hh=>hh.type===sc.target);if(hit)this.marker(hit,drive.detected?'危険を発見':sc.id==='parked'?'車の陰に注意':sc.id==='crosswalk'?'渡りたい人':'交差点の死角');}

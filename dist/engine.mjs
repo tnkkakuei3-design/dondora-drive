@@ -10,7 +10,7 @@ export class Drive {
     this.index=index;this.scene=SCENES[index];this.guided=guided;this.time=0;this.z=0;this.v=this.scene.initialSpeed/3.6;
     this.phase='ready';this.input={brake:false,gas:false};this.detected=null;this.firstBrake=null;this.events=[];
     this.eventTime=null;this.actorX=this.scene.actor==='bike'?5.3:-5.05;this.actorClear=false;this.stopHold=0;
-    this.stopped=false;this.stopDistance=null;this.checks={left:false,right:false};this.closest=Infinity;this.idle=0;this.outcome=null;
+    this.impact=null;this.missedLine=false;this.stopped=false;this.stopDistance=null;this.checks={left:false,right:false};this.closest=Infinity;this.idle=0;this.outcome=null;
   }
   get distance(){return this.scene.hazard-this.z;}
   get speed(){return this.v*3.6;}
@@ -32,7 +32,7 @@ export class Drive {
   }
   step(dt){
     if(this.phase!=='running')return;
-    dt=clamp(dt,0,0.05);this.time+=dt;
+    dt=clamp(dt,0,0.05);this.time+=dt;if(this.impact){this.v=0;if(this.time-this.impact.at>2.2)this.finish(false,'接触しました');return;}const previousZ=this.z;
     if(this.input.brake&&this.firstBrake===null&&this.cueVisible){this.firstBrake={time:this.time,distance:this.distance,speed:this.speed,beforeAppearance:this.eventTime===null||this.eventTime<0.85};this.events.push({type:'brake',time:this.time,distance:this.distance,label:'ブレーキ開始'});}
     let a=this.input.brake?-4.3:this.input.gas?1.8:-0.42;
     const oldV=this.v;this.v=clamp(this.v+a*dt,0,35/3.6);this.z+=(oldV+this.v)/2*dt;
@@ -48,8 +48,11 @@ export class Drive {
       this.stopHold+=dt;
       if(this.stopHold>=0.8&&!this.stopped){this.stopped=true;this.stopDistance=this.distance;this.events.push({type:'stop',time:this.time,distance:this.distance,label:'停止'});}
     }else this.stopHold=0;
-    if(this.distance<this.scene.line){this.finish(false,this.scene.id==='intersection'?'停止線を越えました':'止まる余裕が足りませんでした');return;}
-    if(this.stopped&&this.actorClear&&this.v<0.25&&(this.scene.id!=='intersection'||(this.checks.left&&this.checks.right))){this.finish(true,'安全に止まれました');}
+    if(this.distance<this.scene.line)this.missedLine=true;
+    const actorWorldX=this.index===0?-3.7+Math.max(0,this.actorX+5.05)*.86:this.index===1?-4.3+Math.max(0,this.actorX+5.05)*.91:this.actorX;
+    if(!this.actorClear&&this.v>.4&&previousZ+2<=this.scene.hazard+.65&&this.z+2>=this.scene.hazard-.65&&Math.abs(actorWorldX+1.38)<(this.index===2?1.35:.95)){this.impact={at:this.time,x:actorWorldX};this.events.push({type:'impact',time:this.time,distance:this.distance,label:'接触'});this.v=0;this.release();return;}
+    if(this.missedLine&&(this.distance < -4||this.v<.1)){this.finish(false,this.scene.id==='intersection'?'停止線を越えました':'止まる余裕が足りませんでした');return;}
+    if(!this.missedLine&&this.stopped&&this.actorClear&&this.v<0.25&&(this.scene.id!=='intersection'||(this.checks.left&&this.checks.right))){this.finish(true,'安全に止まれました');}
   }
   finish(safe,reason){
     if(this.outcome)return;
