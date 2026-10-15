@@ -1,4 +1,4 @@
-import {clamp} from './engine.mjs?v=050';
+import {clamp} from './engine.mjs?v=051';
 const COLORS={sky:'#dcebf0',skyTop:'#b5d5e4',road:'#7f9098',edge:'#f8f4e7',pavement:'#dadbd2',grass:'#a7bda7',ink:'#18374b'};
 export class Renderer{
  constructor(canvas){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.w=1;this.h=1;this.hits=[];this.pan=0;}

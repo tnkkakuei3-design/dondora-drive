@@ -5,6 +5,13 @@ export const SCENES = [
 ];
 
 export const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+// Consume the whole frame interval. Small physics steps retain collision accuracy
+// without slowing the world down when rendering falls below 20 FPS.
+export function advanceFrame(drive,dt){
+  if(!Number.isFinite(dt)||dt<=0||drive.phase!=='running')return;
+  const count=Math.ceil(dt/(1/120)),step=dt/count;
+  for(let i=0;i<count&&drive.phase==='running';i++)drive.stepPhysics(step);
+}
 export class Drive {
   constructor(index=0,guided=true){
     this.index=index;this.scene=SCENES[index];this.guided=guided;this.time=0;this.z=0;this.v=this.scene.initialSpeed/3.6;
@@ -30,9 +37,10 @@ export class Drive {
     if(this.phase!=='running'||!['left','right'].includes(side)||this.checks[side]||this.scene.id!=='intersection'||!this.stopped||this.v>0.25)return false;
     this.checks[side]=true;this.events.push({type:'check',time:this.time,distance:this.distance,label:side==='left'?'左を確認':'右を確認'});return true;
   }
-  step(dt){
+  step(dt){advanceFrame(this,dt);}
+  stepPhysics(dt){
     if(this.phase!=='running')return;
-    dt=clamp(dt,0,0.05);this.time+=dt;if(this.impact){this.v=0;if(this.time-this.impact.at>2.2)this.finish(false,'接触しました');return;}const previousZ=this.z;
+    this.time+=dt;if(this.impact){this.v=0;if(this.time-this.impact.at>2.2)this.finish(false,'接触しました');return;}const previousZ=this.z;
     if(this.input.brake&&this.firstBrake===null&&this.cueVisible){this.firstBrake={time:this.time,distance:this.distance,speed:this.speed,beforeAppearance:this.eventTime===null||this.eventTime<0.85};this.events.push({type:'brake',time:this.time,distance:this.distance,label:'ブレーキ開始'});}
     let a=this.input.brake?-4.3:this.input.gas?1.8:-0.42;
     const oldV=this.v;this.v=clamp(this.v+a*dt,0,35/3.6);this.z+=(oldV+this.v)/2*dt;

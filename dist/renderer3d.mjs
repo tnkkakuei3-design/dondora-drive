@@ -1,5 +1,5 @@
 import * as THREE from './vendor/three.module.min.js';
-import {createWorld,updateWorld,createIntegratedWorld,updateIntegratedWorld} from './world3d.mjs?v=050';
+import {createWorld,updateWorld,createIntegratedWorld,updateIntegratedWorld} from './world3d.mjs?v=051';
 export class Renderer3D {
  constructor(canvas,{onContextLost=()=>{}}={}){
   this.canvas=canvas;this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance'});

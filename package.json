@@ -1,11 +1,11 @@
 {
   "name": "dondora-hazard-drive",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "node scripts/vendor.mjs",
-    "test": "node test-engine.mjs && node test-world.mjs && node test-arcade.mjs && node test-audio.mjs"
+    "test": "node test-engine.mjs && node test-world.mjs && node test-arcade.mjs && node test-audio.mjs && node test-timing.mjs"
   },
   "dependencies": {
     "three": "0.180.0"
