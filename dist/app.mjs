@@ -1,7 +1,7 @@
-import {SCENES,Drive,clamp} from './engine.mjs?v=080';
-import {Renderer} from './renderer.mjs?v=080';
-import {ArcadeDrive} from './arcade.mjs?v=080';
-import {DriveAudio} from './audio.mjs?v=080';
+import {SCENES,Drive,clamp} from './engine.mjs?v=090';
+import {Renderer} from './renderer.mjs?v=090';
+import {ArcadeDrive} from './arcade.mjs?v=090';
+import {DriveAudio} from './audio.mjs?v=090';
 const drivingAudio=new DriveAudio();let seenImpacts=0;
 const $=id=>document.getElementById(id),icon=id=>`<svg aria-hidden="true"><use href="#i-${id}"/></svg>`;
 const STORAGE='dondora-hazard-drive-v1';
@@ -12,7 +12,7 @@ let three=null,threePromise=null,threeError=false,threeEnabled=true,lightQuality
 function using3D(){return !!(drive&&three&&!three.failed&&threeEnabled&&!threeError);}
 function refresh3DUI(){const first=!!drive;$('view-toolbar').hidden=!first;$('road3d').hidden=!using3D();$('road').hidden=using3D();$('view-controls').hidden=!(using3D()&&!drive?.arcade&&drive?.phase==='running');$('compare-view').disabled=threeError||!three;$('quality').disabled=!using3D();$('compare-view').setAttribute('aria-pressed',String(using3D()));$('compare-view').textContent=using3D()?'3D表示':'2D表示';$('render-label').textContent=threeError?'3Dを利用できないため、2Dで表示':three?(using3D()?'3D · ドラッグで左右を見る':'比較用の2D表示'):'3Dを準備しています…';}
 function fallback3D(){threeError=true;threeEnabled=false;if(screen==='game'&&drive){pause();refresh3DUI();toast('3D描画が中断したため、2D表示に切り替えました',5);}}
-async function get3D(){if(threePromise)return threePromise;threePromise=(async()=>{try{const {Renderer3D}=await import('./renderer3d.mjs?v=080');three=new Renderer3D($('road3d'),{onContextLost:fallback3D});return three;}catch(error){threeError=true;console.warn('3D unavailable; using the 2D renderer.',error?.message);return null;}})();return threePromise;}
+async function get3D(){if(threePromise)return threePromise;threePromise=(async()=>{try{const {Renderer3D}=await import('./renderer3d.mjs?v=090');three=new Renderer3D($('road3d'),{onContextLost:fallback3D});return three;}catch(error){threeError=true;console.warn('3D unavailable; using the 2D renderer.',error?.message);return null;}})();return threePromise;}
 function previewDrive(index){const d=new Drive(index);d.z=d.scene.hazard-25;d.eventTime=2.5;d.actorX=index===2?1.8:-2.8;return d;}
 function fill3DPreviews(){if(!preview3d)return;const hero=$('hero-3d');hero.src=preview3d.hero;hero.hidden=false;$('hero').hidden=true;for(let i=0;i<SCENES.length;i++){const thumb=$('thumb-'+i);if(!thumb)continue;thumb.hidden=true;let img=thumb.parentNode.querySelector('img');if(!img){img=document.createElement('img');img.alt='3Dコース：'+SCENES[i].title;thumb.parentNode.prepend(img);}img.src=preview3d.thumbs[i];}}
 async function load3DPreviews(){const r=await get3D();if(!r||r.failed)return;try{preview3d={hero:r.snapshot(previewDrive(0),1000,420),thumbs:SCENES.map((s,i)=>r.snapshot(previewDrive(i),420,320))};if(screen==='home')fill3DPreviews();}catch{fallback3D();}}
@@ -32,7 +32,7 @@ function renderHome(){
  if(!storageOK&&!document.querySelector('.storage-note')){const p=document.createElement('p');p.className='storage-note';p.textContent='このブラウザでは成績を保存できません。ゲームはそのまま遊べます。';$('home').append(p);}
 }
 function choose(index){
- drive=index===3?new ArcadeDrive():new Drive(index,guided);seenImpacts=0;$('combo-hud').hidden=index!==3;$('impact-fx').classList.remove('hit');$('steering-controls').hidden=index!==3;$('steering-label').textContent=index===3?'手動操舵':'自動操舵';$('start-tip-copy').innerHTML=index===3?'3場面を続けて走ります。<br>接触コンボはこのゲームモードだけの記録です。':'危険がありそうな場所をタップ。<br>ブレーキ長押しで、完全に止まろう。';drag=null;if(three){three.yaw=0;three.currentYaw=0;}$('view-left').textContent='← 左を見る';$('view-right').textContent='右を見る →';for(const id of ['view-left','view-front','view-right'])$(id).classList.toggle('active',id==='view-front');resultShown=false;hintShown=false;panning=0;panUntil=0;toastUntil=0;
+ drive=index===3?new ArcadeDrive():new Drive(index,guided);seenImpacts=0;$('combo-hud').hidden=index!==3;$('impact-fx').classList.remove('hit');$('steering-controls').hidden=false;$('steering-label').textContent='手動操舵';$('start-tip-copy').innerHTML=index===3?'3場面を続けて走ります。<br>接触コンボはこのゲームモードだけの記録です。':'危険がありそうな場所をタップ。<br>ブレーキ長押しで、完全に止まろう。';drag=null;if(three){three.yaw=0;three.currentYaw=0;}$('view-left').textContent='← 左を見る';$('view-right').textContent='右を見る →';for(const id of ['view-left','view-front','view-right'])$(id).classList.toggle('active',id==='view-front');resultShown=false;hintShown=false;panning=0;panUntil=0;toastUntil=0;
  $('scene-number').textContent=`COURSE ${drive.scene.number} · ${guided?'ガイドあり':'チャレンジ'}`;$('scene-title').textContent=drive.scene.title;$('zone-badge').textContent=drive.scene.area;
  $('start-title').textContent=drive.scene.name;$('start-description').textContent=drive.scene.desc;
  $('start-overlay').hidden=false;$('pause-overlay').hidden=true;$('look-controls').hidden=true;$('toast').hidden=true;
@@ -47,7 +47,8 @@ function resume(){if(!drive)return;drivingAudio.unlock();drive.resume();last=per
 function home(){release();drive=null;show('home');renderHome();}
 function updateHUD(){
  if(!drive)return;
- if(drive.arcade){$('speed').textContent=Math.round(drive.speed);$('progress').style.width=`${clamp(drive.z/255*100,0,100)}%`;const a=drive.actors.find(x=>!x.passed);$('zone-badge').textContent=a?`${a.index+1}/3 · ${SCENES[a.index].area}`:'ゴール';$('drive-status').textContent=drive.input.brake?'ブレーキ':drive.speed<1?'アクセルで進もう':'連続ドライブ';$('instruction').textContent='左右ボタンで車線変更。アクセル・ブレーキは長押し。';$('combo-hud').textContent=`${drive.points} pt`;for(const side of ['left','right'])$('steer-'+side).setAttribute('aria-pressed',String(drive.lane===(side==='right'?1:0)));$('view-controls').hidden=true;$('look-controls').hidden=true;return;}
+ for(const side of ['left','right'])$('steer-'+side).setAttribute('aria-pressed',String(drive.lane===(side==='right'?1:0)));
+ if(drive.arcade){$('speed').textContent=Math.round(drive.speed);$('progress').style.width=`${clamp(drive.z/255*100,0,100)}%`;const a=drive.actors.find(x=>!x.passed);$('zone-badge').textContent=a?`${a.index+1}/3 · ${SCENES[a.index].area}`:'ゴール';$('drive-status').textContent=drive.input.brake?'ブレーキ':drive.speed<1?'アクセルで進もう':'連続ドライブ';$('instruction').textContent='左右ボタンで車線変更。アクセル・ブレーキは長押し。';$('combo-hud').textContent=`${drive.points} pt`;$('view-controls').hidden=true;$('look-controls').hidden=true;return;}
 $('speed').textContent=Math.round(drive.speed);$('progress').style.width=`${clamp(drive.z/drive.scene.hazard*100,0,100)}%`;
  const stopped=drive.stopped&&drive.v<.25,inter=drive.scene.id==='intersection';
  let status='周囲をよく見て走ろう';
@@ -116,7 +117,7 @@ const activeKeys=new Set();
 window.addEventListener('keydown',e=>{
  if(screen!=='game'||$('help-dialog').open)return;
  if(e.key==='Escape'){e.preventDefault();if(drive?.phase==='running')pause();else if(drive?.phase==='paused')resume();return;}
- if(drive?.arcade&&drive.phase==='running'&&['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();drive.steer(e.key==='ArrowRight'?1:-1);return;}
+ if(drive?.phase==='running'&&['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();drive.steer(e.key==='ArrowRight'?1:-1);return;}
  if(!drive||drive.phase!=='running'||!['ArrowUp','ArrowDown',' '].includes(e.key))return;
  e.preventDefault();activeKeys.add(e.key);const key=e.key==='ArrowUp'?'gas':'brake';drive.input[key]=true;$(key).classList.add('pressed');
 });

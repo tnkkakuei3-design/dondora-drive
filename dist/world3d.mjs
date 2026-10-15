@@ -1,5 +1,5 @@
-import {makePedestrian,posePedestrian,poseCyclist} from './pedestrian.mjs?v=080';
-import {pedestrianMotion,childMotion} from './pedestrian-motion.mjs?v=080';
+import {makePedestrian,posePedestrian,poseCyclist} from './pedestrian.mjs?v=090';
+import {pedestrianMotion,childMotion} from './pedestrian-motion.mjs?v=090';
 import * as THREE from './vendor/three.module.min.js';
 import {mergeGeometries} from './vendor/BufferGeometryUtils.js';
 const mats=new Map();
@@ -294,7 +294,7 @@ export function updateWorld(world,drive,{yaw=0,still=false,reducedMotion=false}=
   if(world.actorShadow){world.actorShadow.position.set(child.position.x,.027,child.position.z);world.actorShadow.visible=child.visible&&flight===null;}
  }
  if(world.index===2)poseCyclist(child,{travel:Math.max(0,5.3-drive.actorX),time:drive.time,flight:drive.impact?drive.time-drive.impact.at:null,impactSpeed:drive.impact?.speed});
- cockpit.userData.wheel.rotation.z=drive.arcade?-(drive.steering||0)*.55:movement?Math.sin(drive.z*.09)*.012:0;
+ cockpit.userData.wheel.rotation.z=-(drive.steering||0)*.55;
  sun.position.set(-35,48,16-drive.z);sun.target.position.set(0,0,-drive.z-23);sun.target.updateMatrixWorld();
  marker.visible=!!drive.detected;if(world.index===0)marker.position.set(-3.7,1.25,-83.1);else if(world.index===1)marker.position.set(x,1,-drive.scene.hazard+.3);else marker.position.set(3.6,2,-88);marker.scale.setScalar(world.index===1?.55:1);marker.quaternion.copy(camera.quaternion);world.scene.updateMatrixWorld(true);
 }

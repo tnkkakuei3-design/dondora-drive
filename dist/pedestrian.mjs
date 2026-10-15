@@ -2,7 +2,7 @@ import * as THREE from './vendor/three.module.min.js';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
 import {clone} from './vendor/SkeletonUtils.js';
 import data from './assets/pedestrian-data.mjs';
-import {pedestrianMotion,childMotion,PREPARE} from './pedestrian-motion.mjs?v=080';
+import {pedestrianMotion,childMotion,PREPARE} from './pedestrian-motion.mjs?v=090';
 const bytes=Uint8Array.from(atob(data),c=>c.charCodeAt(0));
 const asset=await new GLTFLoader().parseAsync(bytes.buffer,'');
 const bounds=new THREE.Box3().setFromObject(asset.scene),scale=1.76/(bounds.max.y-bounds.min.y);
