@@ -1,5 +1,5 @@
 import * as THREE from './vendor/three.module.min.js';
-import {createWorld,updateWorld,createIntegratedWorld,updateIntegratedWorld} from './world3d.mjs?v=070';
+import {createWorld,updateWorld,createIntegratedWorld,updateIntegratedWorld} from './world3d.mjs?v=080';
 export class Renderer3D {
  constructor(canvas,{onContextLost=()=>{}}={}){
   this.canvas=canvas;this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance'});
@@ -16,6 +16,6 @@ export class Renderer3D {
   (drive.arcade?updateIntegratedWorld:updateWorld)(this.world,drive,{yaw:this.currentYaw,still,reducedMotion});this.renderer.render(this.world.scene,this.world.camera);
  }
  snapshot(drive,width,height){this.render(drive,{still:true,width,height,yaw:0});return this.canvas.toDataURL('image/webp',.9);}
- hit(clientX,clientY){const b=this.canvas.getBoundingClientRect();this.pointer.set((clientX-b.left)/b.width*2-1,-(clientY-b.top)/b.height*2+1);this.raycaster.setFromCamera(this.pointer,this.world.camera);const hit=this.raycaster.intersectObjects(this.world.occluders.filter(o=>o.visible),true)[0];if(!hit)return false;let o=hit.object;while(o){if(this.world.targets.includes(o))return true;o=o.parent;}return false;}
+ hit(clientX,clientY){this.world.scene.updateMatrixWorld(true);this.world.scene.traverse(o=>{if(o.isSkinnedMesh){o.skeleton.update();o.computeBoundingSphere();o.computeBoundingBox();}});const b=this.canvas.getBoundingClientRect();this.pointer.set((clientX-b.left)/b.width*2-1,-(clientY-b.top)/b.height*2+1);this.raycaster.setFromCamera(this.pointer,this.world.camera);const hit=this.raycaster.intersectObjects(this.world.occluders.filter(o=>o.visible),true)[0];if(!hit)return false;let o=hit.object;while(o){if(this.world.targets.includes(o))return true;o=o.parent;}return false;}
  quality(light){this.renderer.setPixelRatio(light?1:this.ratio);this.renderer.shadowMap.enabled=!light;this.lastWidth=0;}
 }

@@ -8,7 +8,7 @@ const paused=new ArcadeDrive();paused.start();paused.input.gas=true;paused.step(
 const stopped=new ArcadeDrive();stopped.start();stopped.z=86;stopped.v=0;stopped.input.brake=true;for(let i=0;i<200;i++)stopped.step(.05);assert.equal(stopped.hits,0);
 const missed=new ArcadeDrive();missed.start();missed.combo=2;missed.z=92;missed.v=1;missed.actors[0].started=-50;missed.step(.05);assert.equal(missed.combo,0);
 const w=createIntegratedWorld();const d=run(1/60);d.phase='running';d.z=88;d.time=d.actors[0].hit.at+.3;updateIntegratedWorld(w,d);assert.ok(w.actors[0].position.y>0);assert.ok(w.sparks[0].visible);assert.equal(w.index,3);assert.equal(w.camera.position.z,-88);
-const lesson=new Drive(0);lesson.start();lesson.z=85.8;lesson.v=6;lesson.eventTime=2.5;lesson.actorX=-2.2;lesson.step(.05);assert.ok(lesson.impact);const lw=createWorld({textures:false});lesson.time+=.4;updateWorld(lw,lesson);assert.ok(lw.child.position.y>0);for(let i=0;i<60;i++)lesson.step(.05);assert.equal(lesson.outcome.safe,false);
+const lesson=new Drive(0);lesson.start();lesson.z=85.8;lesson.v=6;lesson.eventTime=1.4;lesson.actorX=-2.2;lesson.step(.05);assert.ok(lesson.impact);const lw=createWorld({textures:false});lesson.time+=.4;updateWorld(lw,lesson);assert.ok(lw.child.position.y>0);for(let i=0;i<60;i++)lesson.step(.05);assert.equal(lesson.outcome.safe,false);
 let meshes=0,tri=0;w.scene.traverse(o=>{if(o.isMesh){meshes++;tri+=(o.geometry.index?.count||o.geometry.attributes.position.count)/3;for(const n of o.geometry.attributes.position.array)assert.ok(Number.isFinite(n));}});assert.ok(meshes<360);assert.ok(tri<180000);console.log(`Integrated world: ${meshes} meshes / ${tri} triangles. Pause, combo reset, stationary non-hit, launch and lesson failure checked.`);
 // The complete final approach must stay clear of static scenery at driver height.
 const THREE=await import('./dist/vendor/three.module.min.js');
@@ -30,7 +30,7 @@ for(const fps of [5,30,120]){
  s.pause();s.steer(-1);assert.equal(s.lane,1,'Paused steering ignored');
 }
 for(const x of [-1.38,1.38]){
- const s=new ArcadeDrive();s.start();s.x=x;s.lane=x>0?1:0;s.z=85.8;s.v=6;s.actors[0].started=0;s.time=2.2;
+ const s=new ArcadeDrive();s.start();s.x=x;s.lane=x>0?1:0;s.z=85.8;s.v=6;s.actors[0].started=0;s.time=1.4;
  s.step(.05);assert.equal(s.hits,x<0?1:0,'Collision uses occupied lane');
 }
 console.log('Steering: both lanes, camera, stopped/paused behavior and lane-aware collision passed.');
