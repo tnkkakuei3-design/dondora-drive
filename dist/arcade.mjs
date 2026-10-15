@@ -1,4 +1,4 @@
-import {SCENES,clamp,advanceFrame} from './engine.mjs?v=051';
+import {SCENES,clamp,advanceFrame} from './engine.mjs?v=052';
 export const ROUTE=[{index:0,z:88},{index:1,z:154},{index:2,z:220}];
 export class ArcadeDrive {
  constructor(){this.index=3;this.arcade=true;this.guided=false;this.scene={id:'arcade',number:'04',title:'3場面・連続ドライブ',name:'3つの場面を、ひと続きに。',desc:'アクセルとブレーキで走るフリーゲーム。接触でキャラクターが吹き飛び、連続するとコンボが増えます。',area:'連続コース',hazard:255,initialSpeed:24};this.phase='ready';this.z=0;this.v=24/3.6;this.time=0;this.input={gas:false,brake:false};this.events=[];this.combo=0;this.maxCombo=0;this.hits=0;this.points=0;this.outcome=null;this.detected=null;this.actorClear=false;this.checks={left:false,right:false};this.idle=0;this.actors=ROUTE.map(r=>({...r,started:null,elapsed:0,x:r.index===2?5.3:r.index===0?-3.7:-4.3,hit:null,passed:false}));}

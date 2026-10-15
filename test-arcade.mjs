@@ -10,3 +10,14 @@ const missed=new ArcadeDrive();missed.start();missed.combo=2;missed.z=92;missed.
 const w=createIntegratedWorld();const d=run(1/60);d.phase='running';d.z=88;d.time=d.actors[0].hit.at+.3;updateIntegratedWorld(w,d);assert.ok(w.actors[0].position.y>0);assert.ok(w.sparks[0].visible);assert.equal(w.index,3);assert.equal(w.camera.position.z,-88);
 const lesson=new Drive(0);lesson.start();lesson.z=85.8;lesson.v=6;lesson.eventTime=2.5;lesson.actorX=-2.2;lesson.step(.05);assert.ok(lesson.impact);const lw=createWorld({textures:false});lesson.time+=.4;updateWorld(lw,lesson);assert.ok(lw.child.position.y>0);for(let i=0;i<60;i++)lesson.step(.05);assert.equal(lesson.outcome.safe,false);
 let meshes=0,tri=0;w.scene.traverse(o=>{if(o.isMesh){meshes++;tri+=(o.geometry.index?.count||o.geometry.attributes.position.count)/3;for(const n of o.geometry.attributes.position.array)assert.ok(Number.isFinite(n));}});assert.ok(meshes<360);assert.ok(tri<180000);console.log(`Integrated world: ${meshes} meshes / ${tri} triangles. Pause, combo reset, stationary non-hit, launch and lesson failure checked.`);
+// The complete final approach must stay clear of static scenery at driver height.
+const THREE=await import('./dist/vendor/three.module.min.js');
+w.scene.updateMatrixWorld(true);
+const routeRay=new THREE.Raycaster(new THREE.Vector3(-1.38,1.58,-170),new THREE.Vector3(0,0,-1),0,115);
+assert.equal(routeRay.intersectObject(w.environment,true).length,0,'No background hills may block the final intersection or finish');
+for(const z of [220,255,280,330]){
+ routeRay.set(new THREE.Vector3(-1.38,3,-z),new THREE.Vector3(0,-1,0));routeRay.far=4;
+ const road=routeRay.intersectObject(w.environment,true)[0];
+ assert.ok(road&&Math.abs(road.point.y)<.04,`Continuous road surface through and beyond finish at ${z}m`);
+}
+console.log('Integrated route clearance and road continuity beyond finish passed.');

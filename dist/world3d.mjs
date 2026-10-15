@@ -230,17 +230,17 @@ export function createWorld({merged=true,textures=true,index=0,integrated=false}
  const camera=new THREE.PerspectiveCamera(57,1,.08,300);camera.rotation.order='YXZ';scene.add(camera);const cockpit=makeCockpit();camera.add(cockpit);
  const hemisphere=new THREE.HemisphereLight('#e8f5ff','#899785',1.65);scene.add(hemisphere);const sun=new THREE.DirectionalLight('#fff0d9',2.65);sun.position.set(-35,48,16);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-28;sun.shadow.camera.right=28;sun.shadow.camera.top=42;sun.shadow.camera.bottom=-38;sun.shadow.camera.near=1;sun.shadow.camera.far=125;sun.shadow.bias=-.00035;sun.shadow.normalBias=.035;sun.shadow.radius=3;scene.add(sun,sun.target);
  let env=new THREE.Group();env.name='environment';
- box(env,0,-.18,-90,160,.22,370,'#9da98b');
+ box(env,0,-.18,integrated?-200:-90,160,.22,integrated?590:370,'#9da98b');
  let asphalt=mat('#626f70');
  if(textures){const tex=canvasTexture('asphalt',256,256,(ctx,w,h)=>{let seed=132;const img=ctx.createImageData(w,h);for(let i=0;i<img.data.length;i+=4){seed=(seed*1664525+1013904223)>>>0;const n=95+(seed%22);img.data[i]=n;img.data[i+1]=n+7;img.data[i+2]=n+8;img.data[i+3]=255;}ctx.putImageData(img,0,0);});if(tex){tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(2,90);asphalt=new THREE.MeshStandardMaterial({map:tex,roughness:.96});}}
- box(env,0,-.045,-100,7.1,.09,310,asphalt);
+ box(env,0,-.045,integrated?-200:-100,7.1,.09,integrated?510:310,asphalt);
  if(intersection)box(env,0,-.035,-hazard,100,.08,8,asphalt);
  for(const side of [-1,1]){
-  const crossZ=integrated?220:hazard;const ranges=(intersection||integrated)?[[-285,-crossZ-4],[-crossZ+4,55]]:[[-285,55]];
+  const crossZ=integrated?220:hazard;const ranges=(intersection||integrated)?[[integrated?-455:-285,-crossZ-4],[-crossZ+4,55]]:[[-285,55]];
   for(const [from,to] of ranges){const mid=(from+to)/2,len=to-from;box(env,side*4.25,.04,mid,1.4,.16,len,'#dddccc');box(env,side*3.58,.06,mid,.14,.19,len,'#eeeadc');box(env,side*3.35,.009,mid,.1,.014,len,'#efeddf');}
-  for(let z=0;z<210;z+=7){if(Math.abs(z-hazard)<5&&index>0)continue;box(env,side*3.65,.145,-z,.15,.018,.44,'#8c9c96');for(let j=0;j<3;j++)box(env,side*3.65,.157,-z-.12+j*.12,.13,.01,.025,'#506c67');}
+  for(let z=0;z<(integrated?420:210);z+=7){if(Math.abs(z-hazard)<5&&index>0)continue;box(env,side*3.65,.145,-z,.15,.018,.44,'#8c9c96');for(let j=0;j<3;j++)box(env,side*3.65,.157,-z-.12+j*.12,.13,.01,.025,'#506c67');}
  }
- for(let z=-5;z<210;z+=8){if(index>0&&Math.abs(z-hazard)<9)continue;box(env,0,.012,-z,.075,.015,3.4,'#e9e5cf');}
+ for(let z=-5;z<(integrated?420:210);z+=8){if((index>0&&Math.abs(z-hazard)<9)||(integrated&&(Math.abs(z-154)<5||Math.abs(z-220)<9)))continue;box(env,0,.012,-z,.075,.015,3.4,'#e9e5cf');}
  if(index===1){
   for(let x=-3;x<=3;x+=.8)box(env,x,.018,-hazard,.45,.02,3.3,'#f2eddf');
   box(env,-1.72,.02,-hazard+6,3.1,.025,.35,'#f2eddf');
@@ -253,13 +253,13 @@ export function createWorld({merged=true,textures=true,index=0,integrated=false}
  if(intersection){box(env,-1.72,.02,-hazard+7,3.1,.025,.4,'#f2eddf');
   if(textures){const map=canvasTexture('stop-road',256,768,(c)=>{c.clearRect(0,0,256,768);c.fillStyle='#f5f0df';c.font='900 190px sans-serif';c.textAlign='center';c.textBaseline='middle';['止','ま','れ'].forEach((t,i)=>c.fillText(t,128,128+i*256));});if(map){const roadText=mesh(env,new THREE.PlaneGeometry(1.35,4),new THREE.MeshStandardMaterial({map,transparent:true,alphaTest:.2,roughness:1,depthWrite:false}),-1.7,.025,-hazard+15);roadText.rotation.x=-Math.PI/2;roadText.castShadow=false;}}
  }
- for(let i=0;i<17;i++){const z=6+i*12.7;for(const side of [-1,1]){if((integrated&&(Math.abs(z-154)<14||Math.abs(z-220)<14))||(index===0&&side<0&&Math.abs(z-88)<12)||(index>0&&Math.abs(z-hazard)<14))continue;house(env,side*(8.1+(i%2)*.3),-z,i+(side>0?2:0));if(i%3===0)tree(env,side*5.35,-z-6,.8+(i%2)*.12);}}
+ for(let i=0;i<(integrated?29:17);i++){const z=6+i*12.7;for(const side of [-1,1]){if((integrated&&(Math.abs(z-154)<14||Math.abs(z-220)<14))||(index===0&&side<0&&Math.abs(z-88)<12)||(index>0&&Math.abs(z-hazard)<14))continue;house(env,side*(8.1+(i%2)*.3),-z,i+(side>0?2:0));if(i%3===0)tree(env,side*5.35,-z-6,.8+(i%2)*.12);}}
  // A quiet garden wall leaves a genuine occluded area behind the parked van.
  if(index===0){box(env,-5.35,.75,-87.6,.22,1.5,15,'#c9cab9');box(env,-5.35,1.55,-87.6,.3,.1,15,'#abb69f');for(let j=0;j<7;j++)sphere(env,-5.8,2,-81-j*2,.9,'#8eaa7c',[.8,.8,1.1]);}
- for(let z=8;z<205;z+=28){if(intersection&&Math.abs(z-hazard)<7)continue;cyl(env,-4.9,4.8,-z,.105,.16,9.6,'#9caaa4',8);box(env,-4.9,8.8,-z,1.7,.08,.08,'#7e908a');for(const dx of [-.65,0,.65]){cyl(env,-4.9+dx,8.94,-z,.075,.075,.2,'#dbdfd2',6);line(env,[[-4.9+dx,8.9,-z],[-4.9+dx,8.4,-z-14],[-4.9+dx,8.9,-z-28]],.018,'#697d78');}line(env,[[-4.9,6.9,-z],[-4.2,7,-z],[-3.8,6.9,-z]],.055,'#9caaa4');round(env,-3.8,6.84,-z,.45,.12,.2,.04,'#eee6cf');}
+ for(let z=8;z<(integrated?365:205);z+=28){if(intersection&&Math.abs(z-hazard)<7)continue;cyl(env,-4.9,4.8,-z,.105,.16,9.6,'#9caaa4',8);box(env,-4.9,8.8,-z,1.7,.08,.08,'#7e908a');for(const dx of [-.65,0,.65]){cyl(env,-4.9+dx,8.94,-z,.075,.075,.2,'#dbdfd2',6);line(env,[[-4.9+dx,8.9,-z],[-4.9+dx,8.4,-z-14],[-4.9+dx,8.9,-z-28]],.018,'#697d78');}line(env,[[-4.9,6.9,-z],[-4.2,7,-z],[-3.8,6.9,-z]],.055,'#9caaa4');round(env,-3.8,6.84,-z,.45,.12,.2,.04,'#eee6cf');}
  // Utility box, corner mirror and a school-route placard.
  round(env,5.1,.75,-56,.6,1.5,.5,.04,'#b5c5bd');cyl(env,-4.7,1.7,-68,.055,.055,3.4,'#b2b9a3',8);box(env,-4.7,3,-68,.68,.7,.07,'#d0ad55');if(textures)label(env,-4.7,3,-67.95,.62,.55,'通学路','#edcf76','#4d655d');
- for(let j=0;j<7;j++)sphere(env,-50+j*18,2,-230,35,'#a8bdb2',[1,.5,1]);streetDetails(env,hazard,index);
+ for(let j=0;j<7;j++)sphere(env,-50+j*18,2,integrated?-490:-230,35,'#a8bdb2',[1,.5,1]);streetDetails(env,hazard,index);
  scene.add(env);if(merged){scene.remove(env);env=mergeEnvironment(env);scene.add(env);}
  const van=makeVan();van.position.set(index===0?-3.7:4.4,0,index===0?-85.3:-145);scene.add(van);
  const child=index===0?makeChild():index===1?makeAdult():makeBicycle();scene.add(child);const actorShadow=contactShadow(scene,index===2?2:.9,index===2?.9:1.1,textures);const vanShadow=contactShadow(scene,2.4,4.9,textures);if(vanShadow)vanShadow.position.set(van.position.x,.026,van.position.z);

@@ -1,7 +1,7 @@
-import {SCENES,Drive,clamp} from './engine.mjs?v=051';
-import {Renderer} from './renderer.mjs?v=051';
-import {ArcadeDrive} from './arcade.mjs?v=051';
-import {DriveAudio} from './audio.mjs?v=051';
+import {SCENES,Drive,clamp} from './engine.mjs?v=052';
+import {Renderer} from './renderer.mjs?v=052';
+import {ArcadeDrive} from './arcade.mjs?v=052';
+import {DriveAudio} from './audio.mjs?v=052';
 const drivingAudio=new DriveAudio();let seenImpacts=0;
 const $=id=>document.getElementById(id),icon=id=>`<svg aria-hidden="true"><use href="#i-${id}"/></svg>`;
 const STORAGE='dondora-hazard-drive-v1';
@@ -12,7 +12,7 @@ let three=null,threePromise=null,threeError=false,threeEnabled=true,lightQuality
 function using3D(){return !!(drive&&three&&!three.failed&&threeEnabled&&!threeError);}
 function refresh3DUI(){const first=!!drive;$('view-toolbar').hidden=!first;$('road3d').hidden=!using3D();$('road').hidden=using3D();$('view-controls').hidden=!(using3D()&&drive?.phase==='running');$('compare-view').disabled=threeError||!three;$('quality').disabled=!using3D();$('compare-view').setAttribute('aria-pressed',String(using3D()));$('compare-view').textContent=using3D()?'3D表示':'2D表示';$('render-label').textContent=threeError?'3Dを利用できないため、2Dで表示':three?(using3D()?'3D · ドラッグで左右を見る':'比較用の2D表示'):'3Dを準備しています…';}
 function fallback3D(){threeError=true;threeEnabled=false;if(screen==='game'&&drive){pause();refresh3DUI();toast('3D描画が中断したため、2D表示に切り替えました',5);}}
-async function get3D(){if(threePromise)return threePromise;threePromise=(async()=>{try{const {Renderer3D}=await import('./renderer3d.mjs?v=051');three=new Renderer3D($('road3d'),{onContextLost:fallback3D});return three;}catch(error){threeError=true;console.warn('3D unavailable; using the 2D renderer.',error?.message);return null;}})();return threePromise;}
+async function get3D(){if(threePromise)return threePromise;threePromise=(async()=>{try{const {Renderer3D}=await import('./renderer3d.mjs?v=052');three=new Renderer3D($('road3d'),{onContextLost:fallback3D});return three;}catch(error){threeError=true;console.warn('3D unavailable; using the 2D renderer.',error?.message);return null;}})();return threePromise;}
 function previewDrive(index){const d=new Drive(index);d.z=d.scene.hazard-25;d.eventTime=2.5;d.actorX=index===2?1.8:-2.8;return d;}
 function fill3DPreviews(){if(!preview3d)return;const hero=$('hero-3d');hero.src=preview3d.hero;hero.hidden=false;$('hero').hidden=true;for(let i=0;i<SCENES.length;i++){const thumb=$('thumb-'+i);if(!thumb)continue;thumb.hidden=true;let img=thumb.parentNode.querySelector('img');if(!img){img=document.createElement('img');img.alt='3Dコース：'+SCENES[i].title;thumb.parentNode.prepend(img);}img.src=preview3d.thumbs[i];}}
 async function load3DPreviews(){const r=await get3D();if(!r||r.failed)return;try{preview3d={hero:r.snapshot(previewDrive(0),1000,420),thumbs:SCENES.map((s,i)=>r.snapshot(previewDrive(i),420,320))};if(screen==='home')fill3DPreviews();}catch{fallback3D();}}
