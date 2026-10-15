@@ -16,7 +16,7 @@
 <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4m0 3h.01"/></symbol>
 </defs></svg>
 <div class="shell">
- <header class="header"><a href="./" class="brand" aria-label="ドンドラ 危険予測ドライブ ホーム"><span class="brandicon"><svg><use href="#i-wheel"/></svg></span><span><b>ドンドラ<span class="bang">！</span></b><small>ONLINE · DRIVE</small></span></a><span class="version">3Dコース追加</span></header>
+ <header class="header"><a href="./" class="brand" aria-label="ドンドラ 危険予測ドライブ ホーム"><span class="brandicon"><svg><use href="#i-wheel"/></svg></span><span><b>ドンドラ<span class="bang">！</span></b><small>ONLINE · DRIVE</small></span></a><span class="version">全3コース 3D</span></header>
  <main>
   <section id="home">
    <div class="intro"><span class="eyebrow">危険予測ドライブ</span><h1>見つけて、<br class="mobile-break">ゆるめて、止まる。</h1><p>その「かもしれない」が、安全につながる。<br>運転席から、危険を見つけにいこう。</p></div>
@@ -26,7 +26,7 @@
    <div id="course-list" class="course-list"></div>
    <div class="howto"><h3>遊び方は、3つだけ。</h3><div class="howto-grid"><p><span>01</span><strong>走る</strong><small>アクセルを長押し</small></p><p><span>02</span><strong>気づく</strong><small>危険な場所をタップ</small></p><p><span>03</span><strong>止まる</strong><small>ブレーキを長押し</small></p></div><p class="hint-note">ハンドルは自動。PCは ↑ アクセル・↓ またはスペースでブレーキ。</p></div>
    <p class="disclaimer">危険に気づく練習用のゲームです。走行・制動の挙動と採点はゲーム用に簡略化しています。</p>
-   <details class="reference"><summary>教材について</summary><p>1コース目をThree.jsで立体化した、3場面の体験版です。実際の免許試験の問題・採点基準ではありません。3Dの街・車・人物は独自に制作しています。</p><p>学習ポイントの参考：<a href="https://jaf.or.jp/common/safety-drive/online-training/risk-prediction" target="_blank" rel="noopener">JAF 危険予知・事故回避トレーニング</a>、<a href="https://www.npa.go.jp/bureau/traffic/oudanhodou/info.html" target="_blank" rel="noopener">警察庁 横断歩道は歩行者優先</a>。</p><p>成績はこのブラウザに保存します。ドンドラ本体の学習記録とは別の記録です。</p></details>
+   <details class="reference"><summary>教材について</summary><p>全3コースを立体化した、危険予測の体験版です。実際の免許試験の問題・採点基準ではありません。3Dの街・車・人物は独自に制作しています。</p><p>学習ポイントの参考：<a href="https://jaf.or.jp/common/safety-drive/online-training/risk-prediction" target="_blank" rel="noopener">JAF 危険予知・事故回避トレーニング</a>、<a href="https://www.npa.go.jp/bureau/traffic/oudanhodou/info.html" target="_blank" rel="noopener">警察庁 横断歩道は歩行者優先</a>。</p><p>成績はこのブラウザに保存します。ドンドラ本体の学習記録とは別の記録です。</p></details>
   </section>
   <section id="game" hidden>
    <div class="game-heading"><button class="backbtn" id="home-button" aria-label="コース選択へ戻る">‹</button><div><span class="eyebrow" id="scene-number"></span><h1 id="scene-title"></h1></div><div class="game-tools"><button id="sound" class="iconbutton" aria-label="音をオンにする" aria-pressed="false"><svg><use href="#i-sound"/></svg><span class="slash"></span></button><button id="pause" class="iconbutton" aria-label="一時停止"><svg><use href="#i-pause"/></svg></button></div></div>
@@ -47,5 +47,5 @@
  <footer id="footer"><span>ドンドラ！ONLINE</span><span>毎日の「できた」を、運転の自信に。</span></footer>
 </div>
 <dialog id="help-dialog"><button class="close-dialog" aria-label="閉じる">×</button><span class="eyebrow">操作方法</span><h2>危険を、先に見つけよう。</h2><p><b>アクセルを長押し</b>すると前に進み、離すと少しずつ減速します。<b>ブレーキを長押し</b>して、完全に止まります。</p><p>危険がありそうな車や人、死角をタップすると「発見」を記録します。発見するだけでなく、速度を落とすことが大切です。</p><p>交差点コースでは、停止線の手前で止まった後に「左を見る」「右を見る」で確認します。</p><p class="hint-note">停車中も、飛び出しや横断が終わるまで待ちましょう。実際の車の制動距離を再現するものではありません。</p><button class="primary close-help">わかった</button></dialog>
-<script type="module" src="./app.mjs"></script>
+<script type="module" src="./app.mjs?v=030"></script>
 </body></html>

@@ -6,13 +6,14 @@ let saved={},storageOK=true;try{const raw=JSON.parse(localStorage.getItem(STORAG
 let guided=true,drive=null,screen='home',last=0,resultShown=false,hintShown=false,panning=0,panUntil=0,toastUntil=0,soundEnabled=false,audioContext=null;
 const renderer=new Renderer($('road'));const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let three=null,threePromise=null,threeError=false,threeEnabled=true,lightQuality=false,preview3d=null;
-function using3D(){return !!(drive?.index===0&&three&&!three.failed&&threeEnabled&&!threeError);}
-function refresh3DUI(){const first=drive?.index===0;$('view-toolbar').hidden=!first;$('road3d').hidden=!using3D();$('road').hidden=using3D();$('view-controls').hidden=!(using3D()&&drive?.phase==='running');$('compare-view').disabled=threeError||!three;$('quality').disabled=!using3D();$('compare-view').setAttribute('aria-pressed',String(using3D()));$('compare-view').textContent=using3D()?'3D表示':'2D表示';$('render-label').textContent=threeError?'3Dを利用できないため、2Dで表示':three?(using3D()?'3D住宅街 · ドラッグで左右を見る':'比較用の2D表示'):'3Dを準備しています…';}
-function fallback3D(){threeError=true;threeEnabled=false;if(screen==='game'&&drive?.index===0){pause();refresh3DUI();toast('3D描画が中断したため、2D表示に切り替えました',5);}}
-async function get3D(){if(threePromise)return threePromise;threePromise=(async()=>{try{const {Renderer3D}=await import('./renderer3d.mjs');three=new Renderer3D($('road3d'),{onContextLost:fallback3D});return three;}catch(error){threeError=true;console.warn('3D unavailable; using the 2D renderer.',error?.message);return null;}})();return threePromise;}
-function fill3DPreviews(){if(!preview3d)return;const hero=$('hero-3d');hero.src=preview3d.hero;hero.hidden=false;$('hero').hidden=true;const thumb=$('thumb-0');if(thumb){thumb.hidden=true;let img=thumb.parentNode.querySelector('img');if(!img){img=document.createElement('img');img.alt='3D住宅街のコース';thumb.parentNode.prepend(img);}img.src=preview3d.thumb;}}
-async function load3DPreviews(){const r=await get3D();if(!r||r.failed)return;try{const d=new Drive(0);d.z=61;d.eventTime=2.4;d.actorX=-2.8;preview3d={hero:r.snapshot(d,1000,420),thumb:r.snapshot(d,420,320)};if(screen==='home')fill3DPreviews();}catch{fallback3D();}}
-function show3DReview(){if(!three||three.failed||drive?.index!==0||!threeEnabled)return;try{const d=new Drive(0);d.z=66;d.eventTime=2.5;d.actorX=-2.4;d.detected={};const canvas=$('review-canvas');const img=document.createElement('img');img.alt='3Dの振り返り：駐車車両の陰から現れる子ども';img.src=three.snapshot(d,760,480);canvas.hidden=true;canvas.parentNode.insertBefore(img,canvas);}catch{}}
+function using3D(){return !!(drive&&three&&!three.failed&&threeEnabled&&!threeError);}
+function refresh3DUI(){const first=!!drive;$('view-toolbar').hidden=!first;$('road3d').hidden=!using3D();$('road').hidden=using3D();$('view-controls').hidden=!(using3D()&&drive?.phase==='running');$('compare-view').disabled=threeError||!three;$('quality').disabled=!using3D();$('compare-view').setAttribute('aria-pressed',String(using3D()));$('compare-view').textContent=using3D()?'3D表示':'2D表示';$('render-label').textContent=threeError?'3Dを利用できないため、2Dで表示':three?(using3D()?'3D · ドラッグで左右を見る':'比較用の2D表示'):'3Dを準備しています…';}
+function fallback3D(){threeError=true;threeEnabled=false;if(screen==='game'&&drive){pause();refresh3DUI();toast('3D描画が中断したため、2D表示に切り替えました',5);}}
+async function get3D(){if(threePromise)return threePromise;threePromise=(async()=>{try{const {Renderer3D}=await import('./renderer3d.mjs?v=030');three=new Renderer3D($('road3d'),{onContextLost:fallback3D});return three;}catch(error){threeError=true;console.warn('3D unavailable; using the 2D renderer.',error?.message);return null;}})();return threePromise;}
+function previewDrive(index){const d=new Drive(index);d.z=d.scene.hazard-25;d.eventTime=2.5;d.actorX=index===2?1.8:-2.8;return d;}
+function fill3DPreviews(){if(!preview3d)return;const hero=$('hero-3d');hero.src=preview3d.hero;hero.hidden=false;$('hero').hidden=true;for(let i=0;i<SCENES.length;i++){const thumb=$('thumb-'+i);if(!thumb)continue;thumb.hidden=true;let img=thumb.parentNode.querySelector('img');if(!img){img=document.createElement('img');img.alt='3Dコース：'+SCENES[i].title;thumb.parentNode.prepend(img);}img.src=preview3d.thumbs[i];}}
+async function load3DPreviews(){const r=await get3D();if(!r||r.failed)return;try{preview3d={hero:r.snapshot(previewDrive(0),1000,420),thumbs:SCENES.map((s,i)=>r.snapshot(previewDrive(i),420,320))};if(screen==='home')fill3DPreviews();}catch{fallback3D();}}
+function show3DReview(){if(!three||three.failed||!drive||!threeEnabled||threeError)return;try{const d=previewDrive(drive.index);d.detected={};const canvas=$('review-canvas');const img=document.createElement('img');img.alt='3Dの振り返り：'+drive.scene.title;img.src=three.snapshot(d,760,480);canvas.hidden=true;canvas.parentNode.insertBefore(img,canvas);}catch{}}
 
 function bestKey(index){return `${guided?'guided':'challenge'}-${SCENES[index].id}`;}
 function validBest(key){const value=saved[key];return value&&Number.isFinite(value.score)&&value.score>=0&&value.score<=100?value:null;}
@@ -21,20 +22,20 @@ function toast(message,seconds=2.5){$('toast').textContent=message;$('toast').hi
 function show(which){screen=which;for(const id of ['home','game','result'])$(id).hidden=id!==which;document.body.classList.toggle('in-game',which==='game');$('footer').hidden=which==='game';window.scrollTo({top:0,behavior:'instant'});}
 function renderHome(){
  let count=0;
- $('course-list').innerHTML=SCENES.map((s,i)=>{const best=validBest(bestKey(i));if(best?.safe)count++;return `<button class="course" data-course="${i}" aria-label="コース${s.number} ${s.title} ${s.duration}"><div class="course-thumb"><canvas id="thumb-${i}" aria-hidden="true"></canvas><span class="course-number">${s.number}</span><span class="course-level">${s.level}</span></div><div class="course-info"><small>${s.area}${i===0?'<span class="badge-3d">3D</span>':''}</small><h3>${s.name}</h3><div class="course-bottom"><span>${best?`<b>ベスト ${best.score}点</b>`:s.duration+' · 停止まで'}</span>${icon('arrow')}</div></div></button>`;}).join('');
+ $('course-list').innerHTML=SCENES.map((s,i)=>{const best=validBest(bestKey(i));if(best?.safe)count++;return `<button class="course" data-course="${i}" aria-label="コース${s.number} ${s.title} ${s.duration}"><div class="course-thumb"><canvas id="thumb-${i}" aria-hidden="true"></canvas><span class="course-number">${s.number}</span><span class="course-level">${s.level}</span></div><div class="course-info"><small>${s.area}<span class="badge-3d">3D</span></small><h3>${s.name}</h3><div class="course-bottom"><span>${best?`<b>ベスト ${best.score}点</b>`:s.duration+' · 停止まで'}</span>${icon('arrow')}</div></div></button>`;}).join('');
  $('completed').textContent=`${count} / 3 クリア`;
  for(let i=0;i<SCENES.length;i++){const d=new Drive(i);d.z=d.scene.hazard-23;d.eventTime=i===0?1.1:0;d.actorX=i===2?2.4:-3.5;new Renderer($(`thumb-${i}`)).render(d,{thumbnail:true});}
  const hd=new Drive(0);hd.z=51;hd.actorX=-4.3;new Renderer($('hero')).render(hd,{hero:true});fill3DPreviews();
  if(!storageOK&&!document.querySelector('.storage-note')){const p=document.createElement('p');p.className='storage-note';p.textContent='このブラウザでは成績を保存できません。ゲームはそのまま遊べます。';$('home').append(p);}
 }
 function choose(index){
- drive=new Drive(index,guided);resultShown=false;hintShown=false;panning=0;panUntil=0;toastUntil=0;
+ drive=new Drive(index,guided);drag=null;if(three){three.yaw=0;three.currentYaw=0;}$('view-left').textContent='← 左を見る';$('view-right').textContent='右を見る →';for(const id of ['view-left','view-front','view-right'])$(id).classList.toggle('active',id==='view-front');resultShown=false;hintShown=false;panning=0;panUntil=0;toastUntil=0;
  $('scene-number').textContent=`COURSE ${drive.scene.number} · ${guided?'ガイドあり':'チャレンジ'}`;$('scene-title').textContent=drive.scene.title;$('zone-badge').textContent=drive.scene.area;
  $('start-title').textContent=drive.scene.name;$('start-description').textContent=drive.scene.desc;
  $('start-overlay').hidden=false;$('pause-overlay').hidden=true;$('look-controls').hidden=true;$('toast').hidden=true;
  $('look-left').classList.remove('checked');$('look-right').classList.remove('checked');$('look-left').textContent='← 左を見る';$('look-right').textContent='右を見る →';
  $('instruction').textContent='危険がありそうな場所を、画面でタップ。';show('game');controls(false);updateHUD();renderer.render(drive);$('start').focus({preventScroll:true});
- refresh3DUI();if(index===0&&!threeError){const selected=drive;$('start').disabled=true;get3D().then(()=>{if(drive!==selected||screen!=='game')return;$('start').disabled=false;if(three)three.yaw=0;refresh3DUI();});}else $('start').disabled=false;
+ refresh3DUI();if(!threeError){const selected=drive;$('start').disabled=true;get3D().then(()=>{if(drive!==selected||screen!=='game')return;$('start').disabled=false;if(three)three.yaw=0;refresh3DUI();});}else $('start').disabled=false;
 }
 function controls(active){$('brake').disabled=!active;$('gas').disabled=!active;$('pause').disabled=!active;}
 function release(){if(drive)drive.release();$('brake').classList.remove('pressed');$('gas').classList.remove('pressed');}
@@ -50,7 +51,7 @@ function updateHUD(){
  if(inter&&drive.cueVisible&&!drive.stopped)status=`停止線まで ${Math.max(0,Math.round(drive.distance-drive.scene.line))} m`;
  if(stopped)status=inter&&(!drive.checks.left||!drive.checks.right)?'左右の安全を確認しよう':drive.actorClear?'安全を確認できました':'横断が終わるまで待とう';
  $('drive-status').textContent=status;
- $('look-controls').hidden=!(inter&&stopped);$('view-controls').hidden=!(using3D()&&drive.phase==='running');
+ $('look-controls').hidden=!(inter&&stopped&&!using3D());$('view-controls').hidden=!(using3D()&&drive.phase==='running');
  let text='危険がありそうな場所を、画面でタップ。';
  if(drive.detected)text='発見できたね。ブレーキ長押しで、余裕を持って停止。';
  if(drive.guided&&drive.cueVisible&&!drive.detected)text=drive.scene.clue;
@@ -81,10 +82,11 @@ $('road').addEventListener('pointerup',markAt);
 let drag=null;
 $('road3d').addEventListener('pointerdown',e=>{if(!using3D()||drive.phase!=='running')return;drag={id:e.pointerId,x:e.clientX,y:e.clientY,yaw:three.yaw,moved:false};$('road3d').setPointerCapture(e.pointerId);});
 $('road3d').addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;const dx=e.clientX-drag.x;if(Math.hypot(dx,e.clientY-drag.y)>9)drag.moved=true;if(drag.moved)three.yaw=clamp(drag.yaw+dx/$('road3d').getBoundingClientRect().width*.9,-.6,.6);});
-$('road3d').addEventListener('pointerup',e=>{if(!drag)return;const wasDrag=drag.moved;drag=null;if(wasDrag||!using3D()||drive.phase!=='running')return;if(!drive.cueVisible){toast('もう少し進んで、周囲を観察しよう');return;}if(three.hit(e.clientX,e.clientY)){if(drive.mark()){tone('mark');toast('危険を発見！ 次は、早めに減速。');}else toast('発見済みです。運転に集中しよう');}else toast('車の陰や、そこから現れる人に注目しよう');});
+$('road3d').addEventListener('pointerup',e=>{if(!drag)return;const wasDrag=drag.moved;drag=null;if(wasDrag||!using3D()||drive.phase!=='running')return;if(!drive.cueVisible){toast('もう少し進んで、周囲を観察しよう');return;}if(three.hit(e.clientX,e.clientY)){if(drive.mark()){tone('mark');toast('危険を発見！ 次は、早めに減速。');}else toast('発見済みです。運転に集中しよう');}else toast(drive.scene.clue);});
 $('road3d').addEventListener('pointercancel',()=>drag=null);
 $('road3d').addEventListener('contextmenu',e=>e.preventDefault());
-for(const [id,yaw] of [['view-left',.5],['view-front',0],['view-right',-.5]])$(id).onclick=()=>{if(three)three.yaw=yaw;for(const name of ['view-left','view-front','view-right'])$(name).classList.toggle('active',name===id);};
+function observeSide(side){if(!drive?.observe(side))return;$('look-'+side).classList.add('checked');$('look-'+side).textContent=side==='left'?'✓ 左を確認':'✓ 右を確認';$('view-'+side).textContent=side==='left'?'✓ 左を確認':'✓ 右を確認';panning=side==='left'?1:-1;panUntil=performance.now()+650;tone('mark');}
+for(const [id,yaw] of [['view-left',.85],['view-front',0],['view-right',-.85]])$(id).onclick=()=>{if(three)three.yaw=yaw;if(id!=='view-front')observeSide(id==='view-left'?'left':'right');for(const name of ['view-left','view-front','view-right'])$(name).classList.toggle('active',name===id);};
 $('compare-view').onclick=()=>{if(!three||threeError)return;threeEnabled=!threeEnabled;three.yaw=0;refresh3DUI();};
 $('quality').onclick=()=>{if(!three)return;lightQuality=!lightQuality;three.quality(lightQuality);$('quality').setAttribute('aria-pressed',String(lightQuality));};
 
@@ -94,7 +96,7 @@ $('start').onclick=()=>{drive.start();$('start-overlay').hidden=true;controls(tr
 $('pause').onclick=pause;$('resume').onclick=resume;$('restart').onclick=()=>choose(drive.index);$('leave').onclick=home;
 $('home-button').onclick=()=>drive?.phase==='running'?pause():home();
 $('sound').onclick=()=>{soundEnabled=!soundEnabled;$('sound').setAttribute('aria-pressed',String(soundEnabled));$('sound').setAttribute('aria-label',soundEnabled?'音をオフにする':'音をオンにする');$('sound').querySelector('.slash').hidden=soundEnabled;tone('mark');};
-for(const side of ['left','right'])$('look-'+side).onclick=()=>{if(drive.observe(side)){$('look-'+side).classList.add('checked');$('look-'+side).textContent=side==='left'?'✓ 左を確認':'✓ 右を確認';panning=side==='left'?1:-1;panUntil=performance.now()+650;tone('mark');}};
+for(const side of ['left','right'])$('look-'+side).onclick=()=>observeSide(side);
 let resumeAfterHelp=false;
 $('help').onclick=()=>{resumeAfterHelp=drive?.phase==='running';if(resumeAfterHelp)pause();$('help-dialog').showModal();};
 const closeHelp=()=>{$('help-dialog').close();if(resumeAfterHelp)resume();resumeAfterHelp=false;};

@@ -1,6 +1,6 @@
 # ドンドラ！危険予測ドライブ
 
-Three original mobile-first hazard-perception driving exercises. Static ES modules. Course 01 uses locally vendored Three.js 0.180.0 with original 3D models, lighting, shadows, animated child, cockpit and camera controls. Courses 02/03 retain Canvas 2D. No external runtime CDN, fonts, media or analytics. Desktop and touch controls. Automatic steering, hold-to-accelerate/brake, click a visual hazard, pause/resume, per-course feedback and browser-local best records. Japanese interface.
+Three original mobile-first hazard-perception driving exercises. Static ES modules. All three courses use locally vendored Three.js 0.180.0 with original 3D models, lighting, shadows, animated child, cockpit and camera controls. Canvas 2D remains available as an explicit comparison and compatibility fallback. No external runtime CDN, fonts, media or analytics. Desktop and touch controls. Automatic steering, hold-to-accelerate/brake, click a visual hazard, pause/resume, per-course feedback and browser-local best records. Japanese interface.
 
 ## Files
 
@@ -39,3 +39,12 @@ Browser automation is unavailable in the current managed environment. Physics te
 - Three.js is pinned, self-hosted, and retains its MIT license in `dist/vendor/THREE-LICENSE.txt`. Run `node scripts/vendor.mjs` after installing dependencies.
 - `node test-world.mjs` verifies actual raycast occlusion, child emergence, camera movement, finite geometry, and rendering budgets. Engine tests and DOM flow tests also pass, including simulated WebGL unavailability.
 - Direct SVG projection checked 3D model placement and the camera composition; it does not verify GPU lighting, shadows or shaders. The current environment has no supported browser-control capability. Live WebGL rendering and iPhone/Safari performance remain unverified.
+
+## 0.3 — Three consistent 3D courses
+
+- Added a striped pedestrian crossing, waiting adult with animated limbs, tactile paving and crossing signs.
+- Added a cross street, stop line, stop sign, corner building that physically occludes a detailed bicycle and rider.
+- Shared houses, cockpit, materials, soft shadows, camera controls and lightweight quality mode across all courses.
+- Home thumbnails and result scenes now use the corresponding 3D world. One WebGL renderer serves all three cached scenes.
+- The 3D left/right camera buttons record intersection observations only after a qualified stop; checks and camera reset on retry.
+- Published through GitHub Pages. Browser GPU rendering/performance is not verified in this execution environment.
